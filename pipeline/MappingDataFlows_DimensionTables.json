@@ -1,0 +1,42 @@
+{
+	"name": "MappingDataFlows_DimensionTables",
+	"properties": {
+		"activities": [
+			{
+				"name": "dtflow_dimensiontables",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DataFlow_Dimensions",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "dp203storageahan",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine",
+					"sourceStagingConcurrency": 1
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2024-03-01T11:57:47Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

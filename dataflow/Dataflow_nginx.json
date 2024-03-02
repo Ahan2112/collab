@@ -1,0 +1,87 @@
+{
+	"name": "Dataflow_nginx",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "NGINXSource",
+						"type": "DatasetReference"
+					},
+					"name": "nginxstream"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ServerLogs_Table",
+						"type": "DatasetReference"
+					},
+					"name": "ServerLogs"
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectcolumns"
+				},
+				{
+					"name": "derivedTimecolumn"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          {127.0.0.1} as string,",
+				"          {-1} as string,",
+				"          {-2} as string,",
+				"          {[01/Mar/2024:18:11:01} as string,",
+				"          {+0000]} as string,",
+				"          {GET / HTTP/1.1} as string,",
+				"          {200} as string,",
+				"          {615} as string,",
+				"          {-8} as string,",
+				"          {Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> nginxstream",
+				"nginxstream select(mapColumn(",
+				"          Remote_address = {127.0.0.1},",
+				"          Time_local = {[01/Mar/2024:18:11:01},",
+				"          Request = {GET / HTTP/1.1},",
+				"          Status = {200},",
+				"          Bytes = {615}",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectcolumns",
+				"selectcolumns derive(Time_local = substring(Time_local, 2, length(Time_local)-1)) ~> derivedTimecolumn",
+				"derivedTimecolumn sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Remote_address as string,",
+				"          Time_local as string,",
+				"          Request as string,",
+				"          Status as integer,",
+				"          Bytes as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Remote_address,",
+				"          Time_local,",
+				"          Request,",
+				"          Status,",
+				"          Bytes",
+				"     )) ~> ServerLogs"
+			]
+		}
+	}
+}
